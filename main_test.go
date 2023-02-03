@@ -423,52 +423,58 @@ func TestTransaction(t *testing.T) {
 	}
 
 	tx2 := DB.Begin()
-	u2 := User{Name: "transcation-2"}
+	u2 := User{Name: "test-tx-2"}
 	if err := tx2.Save(&u2).Error; err != nil {
 		t.Errorf("No error should raise")
 	}
 
-	if err := tx2.First(&User{}, "name = ?", "transcation-2").Error; err != nil {
+	if err := tx2.First(&User{}, "name = ?", "test-tx-2").Error; err != nil {
 		t.Errorf("Should find saved record")
 	}
 
 	tx2.Commit()
 
-	if err := DB.First(&User{}, "name = ?", "transcation-2").Error; err != nil {
+	if err := DB.First(&User{}, "name = ?", "test-tx-2").Error; err != nil {
 		t.Errorf("Should be able to find committed record")
 	}
 
-	tx3 := DB.Begin()
-	u3 := User{Name: "transcation-3"}
-	if err := tx3.Save(&u3).Error; err != nil {
-		t.Errorf("No error should raise")
-	}
+	err := DB.Transaction(func(tx3 *gorm.DB) error {
+		u3 := User{Name: "test-tx-3"}
+		if err := tx3.Save(&u3).Error; err != nil {
+			t.Errorf("No error should raise")
+		}
 
-	if err := tx3.First(&User{}, "name = ?", "transcation-3").Error; err != nil {
-		t.Errorf("Should find saved record")
-	}
+		if err := tx3.First(&User{}, "name = ?", "test-tx-3").Error; err != nil {
+			t.Errorf("Should find saved record")
+		}
+		return nil
+	})
 
-	tx3.RollbackUnlessCommitted()
+	if err != nil {
+		t.Errorf("Should not raise any error")
+	}
 
 	if err := tx.First(&User{}, "name = ?", "transcation").Error; err == nil {
 		t.Errorf("Should not find record after rollback")
 	}
 
-	tx4 := DB.Begin()
-	u4 := User{Name: "transcation-4"}
-	if err := tx4.Save(&u4).Error; err != nil {
-		t.Errorf("No error should raise")
+	err = DB.Transaction(func(tx4 *gorm.DB) error {
+		u4 := User{Name: "test-tx-4"}
+		if err := tx4.Save(&u4).Error; err != nil {
+			t.Errorf("No error should raise")
+		}
+
+		if err := tx4.First(&User{}, "name = ?", "test-tx-4").Error; err != nil {
+			t.Errorf("Should find saved record")
+		}
+		return nil
+	})
+
+	if err != nil {
+		t.Errorf("Should not raise any error")
 	}
 
-	if err := tx4.First(&User{}, "name = ?", "transcation-4").Error; err != nil {
-		t.Errorf("Should find saved record")
-	}
-
-	tx4.Commit()
-
-	tx4.RollbackUnlessCommitted()
-
-	if err := DB.First(&User{}, "name = ?", "transcation-4").Error; err != nil {
+	if err := DB.First(&User{}, "name = ?", "test-tx-4").Error; err != nil {
 		t.Errorf("Should be able to find committed record")
 	}
 }
@@ -576,7 +582,7 @@ func TestTransactionReadonly(t *testing.T) {
 	}
 	tx.Commit()
 
-	tx = DB.BeginTx(context.Background(), &sql.TxOptions{ReadOnly: true})
+	tx = DB.WithContext(context.Background()).Begin(&sql.TxOptions{ReadOnly: true})
 	if err := tx.First(&User{}, "name = ?", "transcation").Error; err != nil {
 		t.Errorf("Should find saved record")
 	}
@@ -1115,7 +1121,8 @@ func TestOpenExistingDB(t *testing.T) {
 func TestDdlErrors(t *testing.T) {
 	var err error
 
-	if err = DB.Close(); err != nil {
+	rawDB, _ := DB.DB()
+	if err = rawDB.Close(); err != nil {
 		t.Errorf("Closing DDL test db connection err=%s", err)
 	}
 	defer func() {
