@@ -18,6 +18,8 @@ type DB struct {
 	Error        error
 	RowsAffected int64
 
+	ctx context.Context
+
 	// single db
 	db                SQLCommon
 	blockGlobalUpdate bool
@@ -112,18 +114,6 @@ func (s *DB) New() *DB {
 	clone.search = nil
 	clone.Value = nil
 	return clone
-}
-
-type closer interface {
-	Close() error
-}
-
-// Close close current db connection.  If database connection is not an io.Closer, returns an error.
-func (s *DB) Close() error {
-	if db, ok := s.parent.db.(closer); ok {
-		return db.Close()
-	}
-	return errors.New("can't close current db")
 }
 
 // DB get `*sql.DB` from current connection
@@ -573,15 +563,21 @@ func (s *DB) Transaction(fc func(tx *DB) error) (err error) {
 }
 
 // Begin begins a transaction
-func (s *DB) Begin() *DB {
-	return s.BeginTx(context.Background(), &sql.TxOptions{})
-}
+// Mimicking: https://github.com/go-gorm/gorm/blob/e1f46eb802e7a73c9cc04241c3077dbe9021cd51/finisher_api.go#L658
+func (s *DB) Begin(opts ...*sql.TxOptions) *DB {
+	ctx := s.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
-// BeginTx begins a transaction with options
-func (s *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) *DB {
+	var opt *sql.TxOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+
 	c := s.clone()
 	if db, ok := c.db.(sqlDb); ok && db != nil {
-		tx, err := db.BeginTx(ctx, opts)
+		tx, err := db.BeginTx(ctx, opt)
 		c.db = interface{}(tx).(SQLCommon)
 
 		c.dialect.SetDB(c.db)
@@ -589,6 +585,7 @@ func (s *DB) BeginTx(ctx context.Context, opts *sql.TxOptions) *DB {
 	} else {
 		c.AddError(ErrCantStartTransaction)
 	}
+
 	return c
 }
 
@@ -616,21 +613,12 @@ func (s *DB) Rollback() *DB {
 	return s
 }
 
-// RollbackUnlessCommitted rollback a transaction if it has not yet been
-// committed.
-func (s *DB) RollbackUnlessCommitted() *DB {
-	var emptySQLTx *sql.Tx
-	if db, ok := s.db.(sqlTx); ok && db != nil && db != emptySQLTx {
-		err := db.Rollback()
-		// Ignore the error indicating that the transaction has already
-		// been committed.
-		if err != sql.ErrTxDone {
-			s.AddError(err)
-		}
-	} else {
-		s.AddError(ErrInvalidTransaction)
-	}
-	return s
+// WithContext set context for current db
+// Mimicking: https://github.com/go-gorm/gorm/blob/e1f46eb802e7a73c9cc04241c3077dbe9021cd51/gorm.go#L307
+func (s *DB) WithContext(ctx context.Context) *DB {
+	db := s.clone()
+	db.ctx = ctx
+	return db
 }
 
 // NewRecord check if value's primary key is blank

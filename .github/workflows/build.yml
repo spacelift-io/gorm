@@ -13,6 +13,17 @@ jobs:
     name: Build 👷‍♀️
     runs-on: ubuntu-latest
     container: golang:1.19
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: gorm
+          POSTGRES_PASSWORD: gorm
+          POSTGRES_DB: gorm
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - name: Check out repository code
@@ -20,3 +31,7 @@ jobs:
       
       - name: Run tests
         run: go test -v ./...
+        env:
+          GORM_DIALECT: postgres
+          GORM_DSN: postgres://gorm:gorm@postgres:5432/gorm?sslmode=disable
+   
