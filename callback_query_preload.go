@@ -54,6 +54,11 @@ func preloadCallback(scope *Scope) {
 				if idx == len(preloadFields)-1 {
 					currentPreloadConditions = preload.conditions
 				}
+				if preloadable, ok := scope.Value.(interface {
+					PreloadedMap() map[string]bool
+				}); ok {
+					preloadable.PreloadedMap()[preloadKey] = true
+				}
 
 				for _, field := range currentFields {
 					if field.Name != preloadField || field.Relationship == nil {
@@ -74,6 +79,7 @@ func preloadCallback(scope *Scope) {
 					}
 
 					if currentScope.DB().Error == nil {
+
 						preloadedMap[preloadKey] = true
 					}
 					break
@@ -396,7 +402,7 @@ func (scope *Scope) handleManyToManyPreload(field *Field, conditions []interface
 
 	for source, fields := range fieldsSourceMap {
 		for _, f := range fields {
-			//If not 0 this means Value is a pointer and we already added preloaded models to it
+			// If not 0 this means Value is a pointer and we already added preloaded models to it
 			if f.Len() != 0 {
 				continue
 			}
