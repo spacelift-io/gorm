@@ -220,7 +220,10 @@ func (s *SQLCommonMock) QueryRow(query string, args ...interface{}) *sql.Row {
 
 func TestNestedPreload1FirstLevelError(t *testing.T) {
 	var err error
-	sqlDB := DB.DB()
+	sqlDB, err := DB.DB()
+	if err != nil {
+		t.Error(err)
+	}
 
 	// will not preload Level2 due to faked database error
 	sqlMock := &SQLCommonMock{db: sqlDB, errorQuery: `SELECT * FROM "level2"  WHERE ("level3_id" IN (?))`}
