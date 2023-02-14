@@ -226,7 +226,16 @@ func TestNestedPreload1FirstLevelError(t *testing.T) {
 	}
 
 	// will not preload Level2 due to faked database error
-	sqlMock := &SQLCommonMock{db: sqlDB, errorQuery: `SELECT * FROM "level2"  WHERE ("level3_id" IN (?))`}
+
+	var errorQuery string
+	dialect := DB.Dialect().GetName()
+	if dialect == "sqlite3" {
+		errorQuery = `SELECT * FROM "level2"  WHERE ("level3_id" IN (?))`
+	} else {
+		errorQuery = `SELECT * FROM "level2"  WHERE ("level3_id" IN ($1))`
+	}
+
+	sqlMock := &SQLCommonMock{db: sqlDB, errorQuery: errorQuery}
 	localDB, err := gorm.Open(DB.Dialect().GetName(), sqlMock)
 	if err != nil {
 		t.Error(err)
@@ -278,7 +287,12 @@ func TestNestedPreload1FirstLevelError(t *testing.T) {
 	}
 
 	// will not preload Level1 due to faked database error
-	sqlMock = &SQLCommonMock{db: sqlDB, errorQuery: `SELECT * FROM "level1"  WHERE ("level2_id" IN (?))`}
+	if dialect == "sqlite3" {
+		errorQuery = `SELECT * FROM "level1"  WHERE ("level2_id" IN (?))`
+	} else {
+		errorQuery = `SELECT * FROM "level1"  WHERE ("level2_id" IN ($1))`
+	}
+	sqlMock = &SQLCommonMock{db: sqlDB, errorQuery: errorQuery}
 	localDB, err = gorm.Open(DB.Dialect().GetName(), sqlMock)
 	if err != nil {
 		t.Error(err)
