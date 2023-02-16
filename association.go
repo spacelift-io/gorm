@@ -15,27 +15,28 @@ type Association struct {
 }
 
 // Find find out all related associations
-func (association *Association) Find(value interface{}) *Association {
+func (association *Association) Find(value interface{}) error {
 	association.scope.related(value, association.column)
-	return association.setErr(association.scope.db.Error)
+	association.setErr(association.scope.db.Error)
+	return association.Error
 }
 
 // Append append new associations for many2many, has_many, replace current association for has_one, belongs_to
-func (association *Association) Append(values ...interface{}) *Association {
+func (association *Association) Append(values ...interface{}) error {
 	if association.Error != nil {
-		return association
+		return association.Error
 	}
 
 	if relationship := association.field.Relationship; relationship.Kind == "has_one" {
 		return association.Replace(values...)
 	}
-	return association.saveAssociations(values...)
+	return association.saveAssociations(values...).Error
 }
 
 // Replace replace current associations with new one
-func (association *Association) Replace(values ...interface{}) *Association {
+func (association *Association) Replace(values ...interface{}) error {
 	if association.Error != nil {
-		return association
+		return association.Error
 	}
 
 	var (
@@ -123,13 +124,13 @@ func (association *Association) Replace(values ...interface{}) *Association {
 			association.setErr(newDB.Model(fieldValue).UpdateColumn(foreignKeyMap).Error)
 		}
 	}
-	return association
+	return association.Error
 }
 
 // Delete remove relationship between source & passed arguments, but won't delete those arguments
-func (association *Association) Delete(values ...interface{}) *Association {
+func (association *Association) Delete(values ...interface{}) error {
 	if association.Error != nil {
-		return association
+		return association.Error
 	}
 
 	var (
@@ -140,7 +141,7 @@ func (association *Association) Delete(values ...interface{}) *Association {
 	)
 
 	if len(values) == 0 {
-		return association
+		return association.Error
 	}
 
 	var deletingResourcePrimaryFieldNames, deletingResourcePrimaryDBNames []string
@@ -249,11 +250,11 @@ func (association *Association) Delete(values ...interface{}) *Association {
 		}
 	}
 
-	return association
+	return association.Error
 }
 
 // Clear remove relationship between source & current associations, won't delete those associations
-func (association *Association) Clear() *Association {
+func (association *Association) Clear() error {
 	return association.Replace()
 }
 

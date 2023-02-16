@@ -284,8 +284,8 @@ func getPreparedUser(name string, role string) *User {
 }
 
 type Panda struct {
-    Number int64 `gorm:"unique_index:number"`
-    Name string `gorm:"column:name;type:varchar(255);default:null"`
+	Number int64  `gorm:"unique_index:number"`
+	Name   string `gorm:"column:name;type:varchar(255);default:null"`
 }
 
 func runMigration() {
@@ -354,11 +354,11 @@ func TestIndexes(t *testing.T) {
 
 	var user = User{Name: "sample_user"}
 	DB.Save(&user)
-	if DB.Model(&user).Association("Emails").Append(Email{Email: "not-1duplicated@gmail.com"}, Email{Email: "not-duplicated2@gmail.com"}).Error != nil {
+	if DB.Model(&user).Association("Emails").Append(Email{Email: "not-1duplicated@gmail.com"}, Email{Email: "not-duplicated2@gmail.com"}) != nil {
 		t.Errorf("Should get no error when append two emails for user")
 	}
 
-	if DB.Model(&user).Association("Emails").Append(Email{Email: "duplicated@gmail.com"}, Email{Email: "duplicated@gmail.com"}).Error == nil {
+	if DB.Model(&user).Association("Emails").Append(Email{Email: "duplicated@gmail.com"}, Email{Email: "duplicated@gmail.com"}) == nil {
 		t.Errorf("Should get no duplicated email error when insert duplicated emails for a user")
 	}
 

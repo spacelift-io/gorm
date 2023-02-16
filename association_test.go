@@ -168,7 +168,7 @@ func TestBelongsTo(t *testing.T) {
 		t.Errorf("Post's category count should be 0 after the category has been deleted, but got %v", count)
 	}
 
-	if err := DB.Model(&post).Association("Category").Find(&Category{}).Error; err == nil {
+	if err := DB.Model(&post).Association("Category").Find(&Category{}); err == nil {
 		t.Errorf("Post's category is not findable after Delete")
 	}
 
@@ -176,7 +176,7 @@ func TestBelongsTo(t *testing.T) {
 		t.Errorf("Post's category count should be 1 when query with Unscoped, but got %v", count)
 	}
 
-	if err := DB.Unscoped().Model(&post).Association("Category").Find(&Category{}).Error; err != nil {
+	if err := DB.Unscoped().Model(&post).Association("Category").Find(&Category{}); err != nil {
 		t.Errorf("Post's category should be findable when query with Unscoped, got %v", err)
 	}
 }
@@ -357,7 +357,7 @@ func TestHasOne(t *testing.T) {
 		t.Errorf("User's credit card count should be 0 after credit card deleted, but got %v", count)
 	}
 
-	if err := DB.Model(&user).Association("CreditCard").Find(&CreditCard{}).Error; err == nil {
+	if err := DB.Model(&user).Association("CreditCard").Find(&CreditCard{}); err == nil {
 		t.Errorf("User's creditcard is not findable after Delete")
 	}
 
@@ -365,7 +365,7 @@ func TestHasOne(t *testing.T) {
 		t.Errorf("User's credit card count should be 1 when query with Unscoped, but got %v", count)
 	}
 
-	if err := DB.Unscoped().Model(&user).Association("CreditCard").Find(&CreditCard{}).Error; err != nil {
+	if err := DB.Unscoped().Model(&user).Association("CreditCard").Find(&CreditCard{}); err != nil {
 		t.Errorf("User's creditcard should be findable when query with Unscoped, got %v", err)
 	}
 }
