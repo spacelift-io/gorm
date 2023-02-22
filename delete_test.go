@@ -3,7 +3,6 @@ package gorm_test
 import (
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -48,7 +47,7 @@ func TestSoftDelete(t *testing.T) {
 	type User struct {
 		Id        int64
 		Name      string
-		DeletedAt *time.Time
+		DeletedAt gorm.DeletedAt
 	}
 	DB.AutoMigrate(&User{})
 
@@ -60,8 +59,13 @@ func TestSoftDelete(t *testing.T) {
 		t.Errorf("Can't find a soft deleted record")
 	}
 
-	if err := DB.Unscoped().First(&User{}, "name = ?", user.Name).Error; err != nil {
+	var retrievedUser User
+	if err := DB.Unscoped().First(&retrievedUser, "name = ?", user.Name).Error; err != nil {
 		t.Errorf("Should be able to find soft deleted record with Unscoped, but err=%s", err)
+	}
+
+	if !retrievedUser.DeletedAt.Valid || retrievedUser.DeletedAt.Time.IsZero() {
+		t.Errorf("Should be able to find soft deleted record with Unscoped, but DeletedAt is not set")
 	}
 
 	DB.Unscoped().Delete(&user)
@@ -70,25 +74,15 @@ func TestSoftDelete(t *testing.T) {
 	}
 }
 
-func TestSoftDeleteWithCustomizedDeletedAtColumnName(t *testing.T) {
+func TestSoftDelete_UsingTime_InsteadOf_GormTime_Is_Ignored(t *testing.T) {
 	creditCard := CreditCard{Number: "411111111234567"}
 	DB.Save(&creditCard)
 	DB.Delete(&creditCard)
 
-	if deletedAtField, ok := DB.NewScope(&CreditCard{}).FieldByName("DeletedAt"); !ok || deletedAtField.DBName != "deleted_time" {
-		t.Errorf("CreditCard's DeletedAt's column name should be `deleted_time`")
-	}
+	var retrieved CreditCard
+	result := DB.Unscoped().First(&retrieved, "number = ?", creditCard.Number)
 
-	if DB.First(&CreditCard{}, "number = ?", creditCard.Number).Error == nil {
-		t.Errorf("Can't find a soft deleted record")
-	}
-
-	if err := DB.Unscoped().First(&CreditCard{}, "number = ?", creditCard.Number).Error; err != nil {
-		t.Errorf("Should be able to find soft deleted record with Unscoped, but err=%s", err)
-	}
-
-	DB.Unscoped().Delete(&creditCard)
-	if !errors.Is(DB.Unscoped().First(&CreditCard{}, "number = ?", creditCard.Number).Error, gorm.ErrRecordNotFound) {
-		t.Errorf("Can't find permanently deleted record")
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Errorf("Must be entirely wiped from the database. Expected ErrRecordNotFound, got %v", result.Error)
 	}
 }

@@ -35,7 +35,7 @@ func deleteCallback(scope *Scope) {
 
 		deletedAtField, hasDeletedAtField := scope.FieldByName("DeletedAt")
 
-		if !scope.Search.Unscoped && hasDeletedAtField {
+		if !scope.Search.Unscoped && hasDeletedAtField && deletedAtField.Struct.Type == deletedAtType {
 			scope.Raw(fmt.Sprintf(
 				"UPDATE %v SET %v=%v%v%v",
 				scope.QuotedTableName(),
