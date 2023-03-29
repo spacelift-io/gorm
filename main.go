@@ -246,7 +246,7 @@ func (s *DB) Not(query interface{}, args ...interface{}) *DB {
 }
 
 // Limit specify the number of records to be retrieved
-func (s *DB) Limit(limit interface{}) *DB {
+func (s *DB) Limit(limit int) *DB {
 	return s.clone().search.Limit(limit).db
 }
 

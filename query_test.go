@@ -488,31 +488,19 @@ func TestLimitAndOffsetSQL(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		limit, offset interface{}
+		limit, offset int
 		users         []*User
 		ok            bool
 	}{
 		{
 			name:   "OK",
-			limit:  float64(2),
-			offset: float64(2),
+			limit:  2,
+			offset: 2,
 			users: []*User{
 				&User{Name: "TestLimitAndOffsetSQL3", Age: 30},
 				&User{Name: "TestLimitAndOffsetSQL2", Age: 20},
 			},
 			ok: true,
-		},
-		{
-			name:   "Limit parse error",
-			limit:  float64(1000000), // 1e+06
-			offset: float64(2),
-			ok:     false,
-		},
-		{
-			name:   "Offset parse error",
-			limit:  float64(2),
-			offset: float64(1000000), // 1e+06
-			ok:     false,
 		},
 	}
 
