@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func (s *Product) BeforeCreate() (err error) {
+func (s *Product) BeforeCreateV1() (err error) {
 	if s.Code == "Invalid" {
 		err = errors.New("invalid product")
 	}
@@ -16,7 +16,7 @@ func (s *Product) BeforeCreate() (err error) {
 	return
 }
 
-func (s *Product) BeforeUpdate() (err error) {
+func (s *Product) BeforeUpdateV1() (err error) {
 	if s.Code == "dont_update" {
 		err = errors.New("can't update")
 	}
@@ -24,7 +24,7 @@ func (s *Product) BeforeUpdate() (err error) {
 	return
 }
 
-func (s *Product) BeforeSave() (err error) {
+func (s *Product) BeforeSaveV1() (err error) {
 	if s.Code == "dont_save" {
 		err = errors.New("can't save")
 	}
@@ -32,19 +32,19 @@ func (s *Product) BeforeSave() (err error) {
 	return
 }
 
-func (s *Product) AfterFind() {
+func (s *Product) AfterFindV1() {
 	s.AfterFindCallTimes = s.AfterFindCallTimes + 1
 }
 
-func (s *Product) AfterCreate(tx *gorm.DB) {
+func (s *Product) AfterCreateV1(tx *gorm.DB) {
 	tx.Model(s).UpdateColumn(Product{AfterCreateCallTimes: s.AfterCreateCallTimes + 1})
 }
 
-func (s *Product) AfterUpdate() {
+func (s *Product) AfterUpdateV1() {
 	s.AfterUpdateCallTimes = s.AfterUpdateCallTimes + 1
 }
 
-func (s *Product) AfterSave() (err error) {
+func (s *Product) AfterSaveV1() (err error) {
 	if s.Code == "after_save_error" {
 		err = errors.New("can't save")
 	}
@@ -52,7 +52,7 @@ func (s *Product) AfterSave() (err error) {
 	return
 }
 
-func (s *Product) BeforeDelete() (err error) {
+func (s *Product) BeforeDeleteV1() (err error) {
 	if s.Code == "dont_delete" {
 		err = errors.New("can't delete")
 	}
@@ -60,7 +60,7 @@ func (s *Product) BeforeDelete() (err error) {
 	return
 }
 
-func (s *Product) AfterDelete() (err error) {
+func (s *Product) AfterDeleteV1() (err error) {
 	if s.Code == "after_delete_error" {
 		err = errors.New("can't delete")
 	}
