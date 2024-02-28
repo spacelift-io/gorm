@@ -16,7 +16,7 @@ type Author struct {
 
 type HNPost struct {
 	BasePost
-	Author  `gorm:"embedded_prefix:user_"` // Embedded struct
+	Author  `gorm:"embeddedPrefix:user_"` // Embedded struct
 	Upvotes int32
 }
 

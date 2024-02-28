@@ -8,8 +8,8 @@ import (
 )
 
 type Blog struct {
-	ID         uint   `gorm:"primary_key"`
-	Locale     string `gorm:"primary_key"`
+	ID         uint   `gorm:"primaryKey"`  // New V2 style to define primary key
+	Locale     string `gorm:"primary_key"` // Old V1 style to define primary key
 	Subject    string
 	Body       string
 	Tags       []Tag `gorm:"many2many:blog_tags;"`
