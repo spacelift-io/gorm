@@ -205,7 +205,11 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 			if _, ok := field.TagSettingsGet("-"); ok {
 				field.IsIgnored = true
 			} else {
+				// Compatibility with GORM v2
 				if _, ok := field.TagSettingsGet("PRIMARY_KEY"); ok {
+					field.IsPrimaryKey = true
+					modelStruct.PrimaryFields = append(modelStruct.PrimaryFields, field)
+				} else if _, ok := field.TagSettingsGet("PRIMARYKEY"); ok {
 					field.IsPrimaryKey = true
 					modelStruct.PrimaryFields = append(modelStruct.PrimaryFields, field)
 				}
@@ -214,7 +218,10 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 					field.HasDefaultValue = true
 				}
 
+				// Compatibility with GORM v2
 				if _, ok := field.TagSettingsGet("AUTO_INCREMENT"); ok && !field.IsPrimaryKey {
+					field.HasDefaultValue = true
+				} else if _, ok := field.TagSettingsGet("AUTOINCREMENT"); ok && !field.IsPrimaryKey {
 					field.HasDefaultValue = true
 				}
 
@@ -244,12 +251,21 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 					for _, subField := range scope.New(fieldValue).getModelStruct(rootScope, allFields).StructFields {
 						subField = subField.clone()
 						subField.Names = append([]string{fieldStruct.Name}, subField.Names...)
+
+						// Compatibility with GORM v2
 						if prefix, ok := field.TagSettingsGet("EMBEDDED_PREFIX"); ok {
+							subField.DBName = prefix + subField.DBName
+						} else if prefix, ok := field.TagSettingsGet("EMBEDDEDPREFIX"); ok {
 							subField.DBName = prefix + subField.DBName
 						}
 
 						if subField.IsPrimaryKey {
-							if _, ok := subField.TagSettingsGet("PRIMARY_KEY"); ok {
+							// Compatibility with GORM v2
+
+							_, primaryKeyV1 := field.TagSettingsGet("PRIMARY_KEY")
+							_, primaryKeyV2 := field.TagSettingsGet("PRIMARYKEY")
+
+							if primaryKeyV1 || primaryKeyV2 {
 								modelStruct.PrimaryFields = append(modelStruct.PrimaryFields, subField)
 							} else {
 								subField.IsPrimaryKey = false

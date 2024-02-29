@@ -108,7 +108,7 @@ func TestOpen_ReturnsError_WithBadArgs(t *testing.T) {
 
 func TestStringPrimaryKey(t *testing.T) {
 	type UUIDStruct struct {
-		ID   string `gorm:"primary_key"`
+		ID   string `gorm:"primaryKey"`
 		Name string
 	}
 	DB.DropTable(&UUIDStruct{})

@@ -21,10 +21,10 @@ func init() {
 // beforeCreateCallback will invoke `BeforeSave`, `BeforeCreate` method before creating
 func beforeCreateCallback(scope *Scope) {
 	if !scope.HasError() {
-		scope.CallMethod("BeforeSave")
+		scope.CallMethod("BeforeSaveV1")
 	}
 	if !scope.HasError() {
-		scope.CallMethod("BeforeCreate")
+		scope.CallMethod("BeforeCreateV1")
 	}
 }
 
@@ -196,9 +196,9 @@ func forceReloadAfterCreateCallback(scope *Scope) {
 // afterCreateCallback will invoke `AfterCreate`, `AfterSave` method after creating
 func afterCreateCallback(scope *Scope) {
 	if !scope.HasError() {
-		scope.CallMethod("AfterCreate")
+		scope.CallMethod("AfterCreateV1")
 	}
 	if !scope.HasError() {
-		scope.CallMethod("AfterSave")
+		scope.CallMethod("AfterSaveV1")
 	}
 }

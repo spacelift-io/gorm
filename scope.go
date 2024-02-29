@@ -1303,7 +1303,13 @@ func (scope *Scope) autoIndex() *Scope {
 			}
 		}
 
-		if name, ok := field.TagSettingsGet("UNIQUE_INDEX"); ok {
+		// Compatibility with GORM v2
+		name, ok := field.TagSettingsGet("UNIQUE_INDEX")
+		if !ok {
+			name, ok = field.TagSettingsGet("UNIQUEINDEX")
+		}
+
+		if ok {
 			names := strings.Split(name, ",")
 
 			for _, name := range names {
