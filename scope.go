@@ -867,7 +867,7 @@ func (scope *Scope) callCallbacks(funcs []*func(s *Scope)) *Scope {
 				if db != nil {
 					db.Rollback()
 				} else {
-					panic(fmt.Errorf("db is nil during a Rallback: %v", err))
+					panic(fmt.Errorf("db is nil during a Rollback: %v", err))
 				}
 			}
 			panic(err)
