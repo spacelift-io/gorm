@@ -864,7 +864,11 @@ func (scope *Scope) callCallbacks(funcs []*func(s *Scope)) *Scope {
 	defer func() {
 		if err := recover(); err != nil {
 			if db, ok := scope.db.db.(sqlTx); ok {
-				db.Rollback()
+				if db != nil {
+					db.Rollback()
+				} else {
+					panic(fmt.Errorf("db is nil during a Rallback: %v", err))
+				}
 			}
 			panic(err)
 		}
