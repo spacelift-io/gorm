@@ -43,6 +43,8 @@ func (commonDialect) Quote(key string) string {
 func (s *commonDialect) fieldCanAutoIncrement(field *StructField) bool {
 	if value, ok := field.TagSettingsGet("AUTO_INCREMENT"); ok {
 		return strings.ToLower(value) != "false"
+	} else if value, ok := field.TagSettingsGet("AUTOINCREMENT"); ok {
+		return strings.ToLower(value) != "false"
 	}
 	return field.IsPrimaryKey
 }
