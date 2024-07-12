@@ -305,6 +305,8 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 								associationForeignKeys = strings.Split(foreignKey, ",")
 							} else if foreignKey, _ := field.TagSettingsGet("ASSOCIATIONFOREIGNKEY"); foreignKey != "" {
 								associationForeignKeys = strings.Split(foreignKey, ",")
+							} else if foreignKey, _ := field.TagSettingsGet("REFERENCES"); foreignKey != "" {
+								associationForeignKeys = strings.Split(foreignKey, ",")
 							}
 
 							for elemType.Kind() == reflect.Slice || elemType.Kind() == reflect.Ptr {
@@ -318,7 +320,10 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 									{ // Foreign Keys for Source
 										joinTableDBNames := []string{}
 
+										// Compatibility with GORM v2
 										if foreignKey, _ := field.TagSettingsGet("JOINTABLE_FOREIGNKEY"); foreignKey != "" {
+											joinTableDBNames = strings.Split(foreignKey, ",")
+										} else if foreignKey, _ := field.TagSettingsGet("JOINFOREIGNKEY"); foreignKey != "" {
 											joinTableDBNames = strings.Split(foreignKey, ",")
 										}
 
@@ -350,6 +355,8 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 										associationJoinTableDBNames := []string{}
 
 										if foreignKey, _ := field.TagSettingsGet("ASSOCIATION_JOINTABLE_FOREIGNKEY"); foreignKey != "" {
+											associationJoinTableDBNames = strings.Split(foreignKey, ",")
+										} else if foreignKey, _ := field.TagSettingsGet("JOINTABLEREFERENCES"); foreignKey != "" {
 											associationJoinTableDBNames = strings.Split(foreignKey, ",")
 										}
 
@@ -395,7 +402,11 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 											relationship.PolymorphicType = polymorphicType.Name
 											relationship.PolymorphicDBName = polymorphicType.DBName
 											// if Dog has multiple set of toys set name of the set (instead of default 'dogs')
+
+											// Compatibility with GORM v2
 											if value, ok := field.TagSettingsGet("POLYMORPHIC_VALUE"); ok {
+												relationship.PolymorphicValue = value
+											} else if value, ok := field.TagSettingsGet("POLYMORPHICVALUE"); ok {
 												relationship.PolymorphicValue = value
 											} else {
 												relationship.PolymorphicValue = scope.TableName()
@@ -488,6 +499,8 @@ func (scope *Scope) getModelStruct(rootScope *Scope, allFields []*StructField) *
 							if foreignKey, _ := field.TagSettingsGet("ASSOCIATION_FOREIGNKEY"); foreignKey != "" {
 								tagAssociationForeignKeys = strings.Split(foreignKey, ",")
 							} else if foreignKey, _ := field.TagSettingsGet("ASSOCIATIONFOREIGNKEY"); foreignKey != "" {
+								tagAssociationForeignKeys = strings.Split(foreignKey, ",")
+							} else if foreignKey, _ := field.TagSettingsGet("REFERENCES"); foreignKey != "" {
 								tagAssociationForeignKeys = strings.Split(foreignKey, ",")
 							}
 
