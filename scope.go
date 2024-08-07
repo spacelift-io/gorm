@@ -862,8 +862,9 @@ func (scope *Scope) inlineCondition(values ...interface{}) *Scope {
 
 func (scope *Scope) callCallbacks(funcs []*func(s *Scope)) *Scope {
 	defer func() {
+		var emptySQLTx *sql.Tx
 		if err := recover(); err != nil {
-			if db, ok := scope.db.db.(sqlTx); ok {
+			if db, ok := scope.db.db.(sqlTx); ok && db != nil && db != emptySQLTx {
 				db.Rollback()
 			}
 			panic(err)
